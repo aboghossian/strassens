@@ -13,9 +13,17 @@ def strassens(a, b, crossover=2):
     else:
         # if not a power of 2
         if ceil(log2(n)) != floor(log2(n)):
-            # pad with zeroes
+            # find next power of 2
             new_n = 2 ** ceil(log2(n))
-            return
+
+            # pad with zeroes
+            a = [a[i] + ([0] * (new_n - n)) for i in range(n)]
+            b = [b[i] + ([0] * (new_n - n)) for i in range(n)]
+            bottom_pad = [[0] * new_n for i in range(new_n - n)]
+            a += bottom_pad
+            b += bottom_pad
+
+        # otherwise n doesn't need to change
         else:
             new_n = n
 
@@ -45,15 +53,15 @@ def strassens(a, b, crossover=2):
         R1 = add_matrices(subtract_matrices(add_matrices(P5, P4), P2), P6)
         R2 = add_matrices(P1, P2)
         R3 = add_matrices(P3, P4)
-        R4 = add_matrices(subtract_matrices(add_matrices(P5, P1), P3), P7)
+        R4 = subtract_matrices(subtract_matrices(add_matrices(P5, P1), P3), P7)
 
         top = list(map(lambda x,y:x+y, R1, R2))
         bottom = list(map(lambda x,y:x+y, R3, R4))
-        result = [top, bottom]
+        result = top + bottom
 
     return result
 
-m1 = [[1, 2, 1, 2], [1, 2, 1, 2], [1, 2, 1, 2], [1, 2, 1, 2]]
-m2 = [[2, 1, 2, 1], [2, 1, 2, 1], [2, 1, 2, 1], [2, 1, 2, 1]]
+m1 = [[1, 2, 1, 2, 1], [1, 2, 1, 2, 1], [1, 2, 1, 2, 1], [1, 2, 1, 2, 1], [1, 2, 1, 2, 1]]
+m2 = [[2, 1, 2, 1, 2], [2, 1, 2, 1, 2], [2, 1, 2, 1, 2], [2, 1, 2, 1, 2], [2, 1, 2, 1, 2]]
 
 print(strassens(m1, m2))
