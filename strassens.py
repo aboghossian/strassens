@@ -1,4 +1,5 @@
 from math import ceil, floor, log2
+from random import randint
 
 
 def add_matrices(a, b):
@@ -32,14 +33,14 @@ def strassens(a, b, crossover=2):
     # recursive case
     else:
         # if not a power of 2
-        if ceil(log2(n)) != floor(log2(n)):
+        if n%2 != 0:
             # find next power of 2
-            new_n = 2 ** ceil(log2(n))
+            new_n = n + 1
 
             # pad with zeroes
-            a = [a[i] + ([0] * (new_n - n)) for i in range(n)]
-            b = [b[i] + ([0] * (new_n - n)) for i in range(n)]
-            bottom_pad = [[0] * new_n for i in range(new_n - n)]
+            a = [a[i] + [0] for i in range(n)]
+            b = [b[i] + [0] for i in range(n)]
+            bottom_pad = [[0] * new_n]
             a += bottom_pad
             b += bottom_pad
 
@@ -78,5 +79,15 @@ def strassens(a, b, crossover=2):
         top = list(map(lambda x,y:x+y, R1, R2))
         bottom = list(map(lambda x,y:x+y, R3, R4))
         result = top + bottom
+        result = [[result[i][j] for j in range(n)] for i in range(n)]
 
     return result
+
+m1 = [[randint(-1, 1) for i in range(5)] for j in range(5)]
+m2 = [[randint(-1, 1) for i in range(5)] for j in range(5)]
+
+print(m1)
+print()
+print(m2)
+print()
+print(strassens(m1, m2))
