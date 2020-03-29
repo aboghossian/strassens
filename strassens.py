@@ -3,7 +3,7 @@ from math import ceil, floor, log2
 
 
 def strassens(a, b, crossover=2):
-    n = length(a)
+    n = len(a)
 
     # base case
     if n <= crossover:
@@ -15,7 +15,7 @@ def strassens(a, b, crossover=2):
         if ceil(log2(n)) != floor(log2(n)):
             # pad with zeroes
             new_n = 2 ** ceil(log2(n))
-            break
+            return
         else:
             new_n = n
 
@@ -47,6 +47,13 @@ def strassens(a, b, crossover=2):
         R3 = add_matrices(P3, P4)
         R4 = add_matrices(subtract_matrices(add_matrices(P5, P1), P3), P7)
 
-        result = [R1 + R2, R3 + R4]
+        top = list(map(lambda x,y:x+y, R1, R2))
+        bottom = list(map(lambda x,y:x+y, R3, R4))
+        result = [top, bottom]
 
     return result
+
+m1 = [[1, 2, 1, 2], [1, 2, 1, 2], [1, 2, 1, 2], [1, 2, 1, 2]]
+m2 = [[2, 1, 2, 1], [2, 1, 2, 1], [2, 1, 2, 1], [2, 1, 2, 1]]
+
+print(strassens(m1, m2))
