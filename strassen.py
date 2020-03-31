@@ -1,26 +1,42 @@
-from math import ceil, floor, log2
+from math import ceil, floor
 from random import randint
+import sys
 
 
 def add_matrices(a, b):
-    n = len(a)
-    out_mat = [[a[i][j] + b[i][j] for j in range(n)] for i in range(n)]
-    return out_mat
+    return [[x + y for x, y in zip(col_a, col_b)] for col_a, col_b in zip(a, b)]
 
 
 def subtract_matrices(a, b):
-    n = len(a)
-    out_mat = [[a[i][j] - b[i][j] for j in range(n)] for i in range(n)]
-    return out_mat
+    return [[x - y for x, y in zip(col_a, col_b)] for col_a, col_b in zip(a, b)]
 
 
 def multiply_matrices(a, b):
-    out_mat = [[0 for i in range(len(b[0]))] for j in range(len(a))]
-    for i in range(len(a)):
-        for j in range(len(b[0])):
-            for k in range(len(b)):
-                out_mat[i][j] += a[i][k] * b[k][j]
-    return out_mat
+    z_b = list(zip(*b))
+    return [[sum(x * y for x, y in zip(a_row, b_col)) for b_col in z_b] for a_row in a]
+
+
+def read_file(filename, d):
+    dims = range(d)
+    a = [[0 for i in dims] for j in dims]
+    b = [[0 for i in dims] for j in dims]
+    with open(filename) as f:
+        i = 0
+        j = 0
+        for line in f:
+            if i < d:
+                a[i][j] = int(line.strip())
+                j += 1
+                if j > d-1:
+                    j = 0
+                    i += 1
+            else:
+                b[i-d][j] = int(line.strip())
+                j += 1
+                if j > d-1:
+                    j = 0
+                    i += 1
+    return a, b
 
 
 def strassens(a, b, crossover=2):
@@ -28,66 +44,61 @@ def strassens(a, b, crossover=2):
 
     # base case
     if n <= crossover:
-        result = multiply_matrices(a, b)
+        return multiply_matrices(a, b)
 
     # recursive case
     else:
+        range_n = range(n)
         # if not a power of 2
         if n%2 != 0:
             # find next power of 2
             new_n = n + 1
 
             # pad with zeroes
-            a = [a[i] + [0] for i in range(n)]
-            b = [b[i] + [0] for i in range(n)]
-            bottom_pad = [[0] * new_n]
-            a += bottom_pad
-            b += bottom_pad
+            a = [a[i] + [0] for i in range_n] + [[0] * new_n]
+            b = [b[i] + [0] for i in range_n] + [[0] * new_n]
 
-        # otherwise n doesn't need to change
         else:
             new_n = n
 
         # where to split the matrix
         split = new_n//2
+        first_half = range(0, split)
+        second_half = range(split, new_n)
 
         # define sub-matrices
-        A = [[a[i][j] for j in range(0, split)] for i in range(0, split)]
-        B = [[a[i][j] for j in range(split, new_n)] for i in range(0, split)]
-        C = [[a[i][j] for j in range(0, split)] for i in range(split, new_n)]
-        D = [[a[i][j] for j in range(split, new_n)] for i in range(split, new_n)]
-        E = [[b[i][j] for j in range(0, split)] for i in range(0, split)]
-        F = [[b[i][j] for j in range(split, new_n)] for i in range(0, split)]
-        G = [[b[i][j] for j in range(0, split)] for i in range(split, new_n)]
-        H = [[b[i][j] for j in range(split, new_n)] for i in range(split, new_n)]
+        A = [a[i][:split] for i in first_half]
+        B = [a[i][split:new_n] for i in first_half]
+        C = [a[i][:split] for i in second_half]
+        D = [a[i][split:new_n] for i in second_half]
+        E = [b[i][:split] for i in first_half]
+        F = [b[i][split:new_n] for i in first_half]
+        G = [b[i][:split] for i in second_half]
+        H = [b[i][split:new_n] for i in second_half]
 
         # sub-multiplications
-        P1 = strassens(A, subtract_matrices(F, H))
-        P2 = strassens(add_matrices(A, B), H)
-        P3 = strassens(add_matrices(C, D), E)
-        P4 = strassens(D, subtract_matrices(G, E))
-        P5 = strassens(add_matrices(A, D), add_matrices(E, H))
-        P6 = strassens(subtract_matrices(B, D), add_matrices(G, H))
-        P7 = strassens(subtract_matrices(A, C), add_matrices(E, F))
+        P1 = strassens(A, subtract_matrices(F, H), crossover=crossover)
+        P2 = strassens(add_matrices(A, B), H, crossover=crossover)
+        P3 = strassens(add_matrices(C, D), E, crossover=crossover)
+        P4 = strassens(D, subtract_matrices(G, E), crossover=crossover)
+        P5 = strassens(add_matrices(A, D), add_matrices(E, H), crossover=crossover)
+        P6 = strassens(subtract_matrices(B, D), add_matrices(G, H), crossover=crossover)
+        P7 = strassens(subtract_matrices(A, C), add_matrices(E, F), crossover=crossover)
 
         # combine results
-        R1 = add_matrices(subtract_matrices(add_matrices(P5, P4), P2), P6)
-        R2 = add_matrices(P1, P2)
-        R3 = add_matrices(P3, P4)
-        R4 = subtract_matrices(subtract_matrices(add_matrices(P5, P1), P3), P7)
+        result = list(map(lambda x,y:x+y, add_matrices(subtract_matrices(add_matrices(P5, P4), P2), P6), add_matrices(P1, P2)))
+        result.extend(list(map(lambda x,y:x+y, add_matrices(P3, P4), subtract_matrices(subtract_matrices(add_matrices(P5, P1), P3), P7))))
+        return [result[i][:n]for i in range_n]
 
-        top = list(map(lambda x,y:x+y, R1, R2))
-        bottom = list(map(lambda x,y:x+y, R3, R4))
-        result = top + bottom
-        result = [[result[i][j] for j in range(n)] for i in range(n)]
 
-    return result
+if __name__ == "__main__":
+    flag = int(sys.argv[1])
+    dimension = int(sys.argv[2])
+    filename = sys.argv[3]
 
-m1 = [[randint(-1, 1) for i in range(5)] for j in range(5)]
-m2 = [[randint(-1, 1) for i in range(5)] for j in range(5)]
+    a, b = read_file(filename, dimension)
 
-print(m1)
-print()
-print(m2)
-print()
-print(strassens(m1, m2))
+    product = strassens(a, b, crossover=128)
+
+    for i in range(dimension):
+        print(product[i][i])
